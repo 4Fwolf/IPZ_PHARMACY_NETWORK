@@ -11,7 +11,7 @@
             <TabItem Header="Products">
                 <Grid Background="#FFE5E5E5">
                     <Button x:Name="CartBtn" Content="Add to Cart" HorizontalAlignment="Left" Margin="333,10,0,0" VerticalAlignment="Top" Width="75" Click="CartBtn_Click"/>
-                    <TextBox x:Name="CountTb" HorizontalAlignment="Left" Height="22" Margin="373,35,0,0" TextWrapping="Wrap" Text="1" MaxLength="3" VerticalAlignment="Top" Width="35" KeyDown="CountTb_KeyDown"/>
+                    <TextBox x:Name="CountTb" HorizontalAlignment="Left" Height="22" Margin="373,35,0,0" TextWrapping="Wrap" Text="1" MaxLength="3" VerticalAlignment="Top" Width="35" KeyDown="CountTb_KeyDown" MouseEnter="CountTb_MouseEnter"/>
                     <Label Content="Count:" HorizontalAlignment="Left" Margin="328,31,0,0" VerticalAlignment="Top"/>
                     <ListBox x:Name="ProductsLbox" HorizontalAlignment="Left" Height="170" VerticalAlignment="Top" Width="123" SelectionChanged="ProductsLbox_SelectionChanged"/>
                     <Label Content="Product:" HorizontalAlignment="Left" Margin="128,10,0,0" VerticalAlignment="Top"/>
@@ -30,25 +30,18 @@
             </TabItem>
             <TabItem Header="Cart">
                 <Grid Background="#FFE5E5E5">
-                    <Button x:Name="BuyBtn" Content="Buy" HorizontalAlignment="Left" Margin="333,140,0,0" VerticalAlignment="Top" Width="75"/>
-                    <ListView x:Name="CartData" HorizontalAlignment="Left" Height="135" VerticalAlignment="Top" Width="418" ItemsSource="{DynamicResource ResourceKey=items}">
-                        <ListView.View>
-                            <GridView>
-                                <GridViewColumn Width="195" Header="Product"
-                                    DisplayMemberBinding="{Binding Path=ProductBnd}" />
-                                <GridViewColumn Width="65" Header="Price"
-                                    DisplayMemberBinding="{Binding Path=PriceBnd}" />
-                                <GridViewColumn Width="65" Header="Count"
-                                    DisplayMemberBinding="{Binding Path=CountBnd}" />
-                                <GridViewColumn Width="65" Header="Sum"
-                                    DisplayMemberBinding="{Binding Path=SumBnd}"/>
-                            </GridView>
-                        </ListView.View>
-                        <ListView.Resources>
-                            <collections:ArrayList x:Key="items">
-                            </collections:ArrayList>
-                        </ListView.Resources>
-                    </ListView>
+                    <Button x:Name="BuyBtn" Content="Buy" HorizontalAlignment="Left" Margin="333,140,0,0" VerticalAlignment="Top" Width="75" Click="BuyBtn_Click"/>
+                    <DataGrid x:Name="CartData" HorizontalAlignment="Left" VerticalAlignment="Top" RenderTransformOrigin="0.5,0.538" Height="135" Width="418" AutoGenerateColumns="False" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserResizeRows="False" CanUserSortColumns="False" VerticalScrollBarVisibility="Visible" BeginningEdit="CartData_BeginningEdit" IsReadOnly="True" SelectionMode="Single">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Binding="{Binding ProductBnd}" ClipboardContentBinding="{x:Null}" Header="Product" Width="195"/>
+                            <DataGridTextColumn Binding="{Binding PriceBnd}" ClipboardContentBinding="{x:Null}" Header="Price" Width="65"/>
+                            <DataGridTextColumn Binding="{Binding CountBnd}" ClipboardContentBinding="{x:Null}" Header="Count" Width="65"/>
+                            <DataGridTextColumn Binding="{Binding SumBnd}" ClipboardContentBinding="{x:Null}" Header="Sum" Width="65" CanUserReorder="True"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <Button x:Name="DelBtn" Content="Delete" HorizontalAlignment="Left" Margin="10,140,0,0" VerticalAlignment="Top" Width="75" Click="DelBtn_Click"/>
+                    <Label Content="Total:" HorizontalAlignment="Left" Margin="90,137,0,0" VerticalAlignment="Top"/>
+                    <Label x:Name="TotSumLb"  Content="0" HorizontalAlignment="Left" Margin="133,137,0,0" VerticalAlignment="Top"/>
                 </Grid>
             </TabItem>
         </TabControl>

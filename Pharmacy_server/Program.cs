@@ -134,10 +134,32 @@ namespace Pharmacy_server
             while (true)
             {
                 _buffer = PInvokeFill(GetBytes("\0"));
-                _strbuffer.Remove(0);
+                _strbuffer = "\0\0\0";
 
                 Client.GetStream().Read(_buffer, 0, _buffer.Length);
                 _strbuffer = GetString(_buffer);
+
+                if (_strbuffer.Substring(0, _strbuffer.IndexOf('\0')).Equals("READY"))
+                {
+                    StreamWriter tmpfile = new StreamWriter("Cart.tmp", true);
+                    //flg = true;
+                    while (true)
+                    {
+                        _buffer = PInvokeFill(GetBytes("\0"));
+                        _strbuffer = "\0\0\0";
+
+                        Client.GetStream().Read(_buffer, 0, _buffer.Length);
+                        _strbuffer = GetString(_buffer);
+                        if (_strbuffer.Substring(0, _strbuffer.IndexOf('\0')).Equals("~~")) 
+                            break;
+                        
+                        tmpfile.WriteLine(_strbuffer.Substring(0, _strbuffer.IndexOf('\0')));
+                    }
+                    tmpfile.Flush();
+                    tmpfile.Close();
+                    _buffer = PInvokeFill(GetBytes("\0"));
+                    _strbuffer = "\0\0\0";
+                }
 
                 if (_strbuffer.Substring(0, _strbuffer.IndexOf('\0')).Equals("~~")) break;
             }
