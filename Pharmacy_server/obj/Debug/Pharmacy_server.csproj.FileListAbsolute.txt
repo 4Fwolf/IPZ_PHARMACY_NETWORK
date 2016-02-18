@@ -1,0 +1,6 @@
+C:\Users\Sasha\documents\visual studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_server\bin\Debug\Pharmacy_server.exe.config
+C:\Users\Sasha\documents\visual studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_server\bin\Debug\Pharmacy_server.exe
+C:\Users\Sasha\documents\visual studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_server\bin\Debug\Pharmacy_server.pdb
+C:\Users\Sasha\documents\visual studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_server\obj\Debug\Pharmacy_server.exe
+C:\Users\Sasha\documents\visual studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_server\obj\Debug\Pharmacy_server.pdb
+C:\Users\Sasha\documents\visual studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_server\obj\Debug\Pharmacy_server.csprojResolveAssemblyReference.cache

@@ -1,0 +1,16 @@
+c:\users\sasha\documents\visual studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_client\bin\Debug\Pharmacy_client.exe.config
+c:\users\sasha\documents\visual studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_client\bin\Debug\Pharmacy_client.exe
+c:\users\sasha\documents\visual studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_client\bin\Debug\Pharmacy_client.pdb
+c:\users\sasha\documents\visual studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_client\obj\Debug\App.g.cs
+c:\users\sasha\documents\visual studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_client\obj\Debug\Pharmacy_client_MarkupCompile.cache
+c:\users\sasha\documents\visual studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_client\obj\Debug\Pharmacy_client.g.resources
+c:\users\sasha\documents\visual studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_client\obj\Debug\Pharmacy_client.Properties.Resources.resources
+c:\users\sasha\documents\visual studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_client\obj\Debug\Pharmacy_client.csproj.GenerateResource.Cache
+c:\users\sasha\documents\visual studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_client\obj\Debug\Pharmacy_client.exe
+c:\users\sasha\documents\visual studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_client\obj\Debug\Pharmacy_client.pdb
+C:\Users\Sasha\documents\visual studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_client\obj\Debug\UserWnd.baml
+C:\Users\Sasha\documents\visual studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_client\obj\Debug\UserWnd.g.cs
+C:\Users\Sasha\documents\visual studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_client\obj\Debug\LoginWnd.baml
+C:\Users\Sasha\documents\visual studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_client\obj\Debug\LoginWnd.g.cs
+C:\Users\Sasha\documents\visual studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_client\obj\Debug\Pharmacy_client.csprojResolveAssemblyReference.cache
+C:\Users\Sasha\documents\visual studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_client\obj\Debug\Pharmacy_client_MarkupCompile.lref
