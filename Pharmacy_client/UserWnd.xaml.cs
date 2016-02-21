@@ -1,24 +1,11 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Data;
-using System.Dynamic;
 using System.IO;
-using System.Linq;
-using System.Net.Sockets;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Animation;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace Pharmacy_client
 {
@@ -140,7 +127,7 @@ namespace Pharmacy_client
                 tmp.SetValue(ProductLb.Content.ToString(), 0);
                 tmp.SetValue(PriceLb.Content.ToString(), 1);
                 tmp.SetValue(CountTb.Text, 2);
-                tmp.SetValue((int.Parse(PriceLb.Content.ToString())*int.Parse(CountTb.Text)).ToString(), 3);
+                tmp.SetValue((double.Parse(PriceLb.Content.ToString())*int.Parse(CountTb.Text)).ToString(), 3);
                 #endregion
                 #region Add New Item
                 mCartLst.Add(tmp);
@@ -159,7 +146,7 @@ namespace Pharmacy_client
                         if (item.ProductBnd == tmpitm.ProductBnd)
                         {
                             item.CountBnd = ((int.Parse(item.CountBnd)) + (int.Parse(tmpitm.CountBnd))).ToString();
-                            item.SumBnd = ((int.Parse(item.SumBnd)) + (int.Parse(tmpitm.SumBnd))).ToString();
+                            item.SumBnd = ((double.Parse(item.SumBnd)) + (double.Parse(tmpitm.SumBnd))).ToString();
                             CartData.Items.Remove(CartData.Items[j]);
                             CartData.Items.Remove(CartData.Items[i]);
                             CartData.Items.Add(item);
@@ -169,7 +156,7 @@ namespace Pharmacy_client
                 #endregion
                 #endregion
 
-                TotSumLb.Content = ((int.Parse(TotSumLb.Content.ToString())) + (int.Parse(tmp[3]))).ToString();
+                TotSumLb.Content = ((double.Parse(TotSumLb.Content.ToString())) + (double.Parse(tmp[3]))).ToString();
                 PurchLb.Content = (int.Parse(PurchLb.Content.ToString())) - (int.Parse(CountTb.Text));
             }
             else CountTb.Background = new SolidColorBrush(Colors.PaleVioletRed);
@@ -184,10 +171,15 @@ namespace Pharmacy_client
         }
         private void DelBtn_Click(object sender, RoutedEventArgs e)
         {
+            if (CartData.Items.IsEmpty)
+            {
+                MessageBox.Show("Cart is empty!");
+                return;
+            }
             int idx = -1;
             idx = CartData.SelectedIndex;
 
-            TotSumLb.Content = ((int.Parse(TotSumLb.Content.ToString())) - (int.Parse(mCartLst[idx][3]))).ToString();
+            TotSumLb.Content = ((double.Parse(TotSumLb.Content.ToString())) - (double.Parse(mCartLst[idx][3]))).ToString();
 
             CartData.Items.Remove(CartData.Items[idx]);
             mCartLst.Remove(mCartLst[idx]);
@@ -195,6 +187,11 @@ namespace Pharmacy_client
         private void BuyBtn_Click(object sender, RoutedEventArgs e)
         {
             //return;
+            if (CartData.Items.IsEmpty)
+            {
+                MessageBox.Show("Cart is empty!");
+                return;
+            }
             #region Creating DB
             StreamWriter CartWr = new StreamWriter("Cart.tmp", true);
             String Str = "";
