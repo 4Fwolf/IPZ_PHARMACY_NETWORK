@@ -1,14 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using System.Net.Sockets;
-using System.Net;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
 using System.Threading;
 
 namespace Pharmacy_server
@@ -58,26 +53,17 @@ namespace Pharmacy_server
             recv_bytes = Client.GetStream().Read(_buffer, 0, _buffer.Length);
             _strbuffer = GetString(_buffer);
 
-            //FileStream login = new FileStream("Login_db.txt", FileMode.Open);
-            StreamReader login = new StreamReader("Login_db.txt");
-            try
+            Logins_linqDataContext DataBase = new Logins_linqDataContext();
+            var loginTabl = DataBase.Logins.ToList();
+            foreach (var login in loginTabl)
             {
-                login.Peek();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("	Error, Login_db not found! \n");
-                Client.Close();
-            }
-            while (!login.EndOfStream)
-            {
-                tmp = login.ReadLine();
+                tmp = login.Login1 + ":" + login.Password;
                 if (_strbuffer.Substring(0, _strbuffer.IndexOf('\0')).Equals(tmp))
                 {
                     flg = true;
-                    login.Close();
                     break;
                 }
+                tmp = "\0\0\0\0";
             }
 
             if (flg)
@@ -85,6 +71,7 @@ namespace Pharmacy_server
                 _buffer = GetBytes("TRUE\0");
 		        Client.GetStream().Write(_buffer, 0, _buffer.Length);
                 Console.WriteLine("	Logged!");
+                Console.WriteLine("	User: " + _strbuffer.Substring(0, _strbuffer.IndexOf(':')));
             }
 	        else
 	        {
@@ -97,28 +84,28 @@ namespace Pharmacy_server
             _buffer = PInvokeFill(GetBytes("\0"));
             _strbuffer.Remove(0);
 
+            Console.WriteLine("	Waiting readiness ...");
+
             Client.GetStream().Read(_buffer, 0, _buffer.Length);
             _strbuffer = GetString(_buffer);
             if (_strbuffer.Substring(0, _strbuffer.IndexOf('\0')).Equals("READY"))
             {
-                StreamReader file = new StreamReader("Pharmacy_db.txt");
-                try
-                {
-                    file.Peek();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("	Error, Pharmacy_db not found! \n");
-                    Client.Close();
-                }
-
-                while (!file.EndOfStream)
+                Console.WriteLine("	User ready to receive data!");
+                Console.WriteLine("	Sending data ...");
+                var pharmTabl = DataBase.Pharmacies.ToList();
+                foreach (var pharm in pharmTabl)
                 {
                     Thread.Sleep(5);
                     _buffer = PInvokeFill(GetBytes("\0"));
-                    _strbuffer.Remove(0);
+                    _strbuffer = "\0\0\0\0\0\0\0";
 
-                    _strbuffer = file.ReadLine();
+                    _strbuffer = pharm.Product + ":" + 
+                                 pharm.Vendor + ":" +
+                                 pharm.Count.ToString() + ":" +
+                                 pharm.Price.ToString() + ":" +
+                                 pharm.Year.ToString() + ":" +
+                                 pharm.Description;
+
                     _buffer = GetBytes(_strbuffer);
                     Client.GetStream().Write(_buffer, 0, _buffer.Length);
                 }
@@ -128,7 +115,7 @@ namespace Pharmacy_server
 
                 _buffer = GetBytes("~~");
                 Client.GetStream().Write(_buffer, 0, _buffer.Length);
-                file.Close();
+                Console.WriteLine("	Data sent!");
             }
 
             while (true)
@@ -136,11 +123,15 @@ namespace Pharmacy_server
                 _buffer = PInvokeFill(GetBytes("\0"));
                 _strbuffer = "\0\0\0";
 
+                Console.WriteLine("	Waiting readiness ...");
+
                 Client.GetStream().Read(_buffer, 0, _buffer.Length);
                 _strbuffer = GetString(_buffer);
 
                 if (_strbuffer.Substring(0, _strbuffer.IndexOf('\0')).Equals("READY"))
                 {
+                    Console.WriteLine("	User ready to send data!");
+                    Console.WriteLine("	Recieveing data ...");
                     StreamWriter tmpfile = new StreamWriter("Cart.tmp", true);
                     //flg = true;
                     while (true)
@@ -157,6 +148,7 @@ namespace Pharmacy_server
                     }
                     tmpfile.Flush();
                     tmpfile.Close();
+                    Console.WriteLine("	Data received!");
                     _buffer = PInvokeFill(GetBytes("\0"));
                     _strbuffer = "\0\0\0";
                 }
