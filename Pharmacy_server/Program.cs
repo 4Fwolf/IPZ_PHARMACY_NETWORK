@@ -49,6 +49,7 @@ namespace Pharmacy_server
             bool flg = false;
             String tmp = "";
 
+            Relogin:
             // Читаем из потока клиента до тех пор, пока от него поступают данные
             recv_bytes = Client.GetStream().Read(_buffer, 0, _buffer.Length);
             _strbuffer = GetString(_buffer);
@@ -78,6 +79,7 @@ namespace Pharmacy_server
                 _buffer = GetBytes("FALSE\0");
                 Client.GetStream().Write(_buffer, 0, _buffer.Length);
                 Console.WriteLine("	Didn't logged!");
+                goto Relogin;
 	        }
 	        flg = false;
 
