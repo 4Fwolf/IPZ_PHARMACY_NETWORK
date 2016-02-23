@@ -8,21 +8,18 @@ using System.Threading;
 
 namespace Pharmacy_server
 {
-    // Класс-обработчик клиента
     class Client
     {
-        public static byte[] _buffer = new byte[1024];
-        public static String _strbuffer;
-        public static byte[] GetBytes(String str)
+        private static byte[] _buffer = new byte[1024];
+        private static String _strbuffer;
+        private static bool _exception = false;
+        private static byte[] GetBytes(String str)
         {
             byte[] bytes = System.Text.Encoding.UTF8.GetBytes(str);
-            //System.Buffer.BlockCopy(str.ToCharArray(), 0, bytes, 0, bytes.Length);
             return bytes;
         }
-        public static String GetString(byte[] bytes)
+        private static String GetString(byte[] bytes)
         {
-            //char[] chars = new char[bytes.Length / sizeof(char)];
-            //System.Buffer.BlockCopy(bytes, 0, chars, 0, bytes.Length);
             char[] chars = System.Text.Encoding.UTF8.GetChars(bytes);
             return new String(chars);
         }
@@ -34,175 +31,244 @@ namespace Pharmacy_server
             gch.Free();
             return arr;
         }
+        static void SendThread(Object client)
+        {
+            lock (client)
+            {
+                try
+                {
+                    _buffer = GetBytes(_strbuffer);
+                    ((TcpClient) client).GetStream().Write(_buffer, 0, _buffer.Length);
+                }
+                catch (Exception)
+                {
+                    _exception = true;
+                    Console.WriteLine(" [Error] Can't send data! {" + _strbuffer + "}");
+                }
+            }
+        }
+        static void RecieveThread(Object client)
+        {
+            lock (client)
+            {
+                try
+                {
+                    ((TcpClient) client).GetStream().Read(_buffer, 0, _buffer.Length);
+                    _strbuffer = GetString(_buffer);
+                }
+                catch (Exception)
+                {
+                    _exception = true;
+                    Console.WriteLine(" [Error] Can't recieve data!");
+                }
+            }
+        }
+        static void ClearBuff()
+        {
+            _buffer = PInvokeFill(GetBytes("\0"));
+            _strbuffer = "\0";
+        }
 
         [DllImport("msvcrt.dll",
             EntryPoint = "memset",
             CallingConvention = CallingConvention.Cdecl,
             SetLastError = false)]
-        public static extern IntPtr MemSet(IntPtr dest, int value, int count);
+        private static extern IntPtr MemSet(IntPtr dest, int value, int count);
 
-        // Конструктор класса. Ему нужно передавать принятого клиента от TcpListener
-        public Client(TcpClient Client)
+        public Client(TcpClient client)
         {
-            // Переменная для хранения количества байт, принятых от клиента
-            int recv_bytes;
             bool flg = false;
-            String tmp = "";
+            String tmp;
+            String user = "";
+            Logins_linqDataContext dataBase = new Logins_linqDataContext();
+
+            // Hello message
+            ClearBuff();
+            var thread = new Thread(RecieveThread);
+            thread.Start(client);
+            thread.Join();
+
+            if (_exception) goto disconn;
+
+            ClearBuff();
+            _strbuffer = "Hello!";
+            thread = new Thread(SendThread);
+            thread.Start(client);
+            thread.Join();
+
+            if (_exception) goto disconn;
 
             Relogin:
-            // Читаем из потока клиента до тех пор, пока от него поступают данные
-            recv_bytes = Client.GetStream().Read(_buffer, 0, _buffer.Length);
-            _strbuffer = GetString(_buffer);
+            ClearBuff();
+            thread = new Thread(RecieveThread);
+            thread.Start(client);
+            thread.Join();
 
-            Logins_linqDataContext DataBase = new Logins_linqDataContext();
-            var loginTabl = DataBase.Logins.ToList();
+            if (_exception) goto disconn;
+
+            var loginTabl = dataBase.Logins.ToList();
             foreach (var login in loginTabl)
             {
                 tmp = login.Login1 + ":" + login.Password;
-                if (_strbuffer.Substring(0, _strbuffer.IndexOf('\0')).Equals(tmp))
-                {
-                    flg = true;
-                    break;
-                }
-                tmp = "\0\0\0\0";
+                if (!_strbuffer.Substring(0, _strbuffer.IndexOf('\0')).Equals(tmp)) continue;
+                flg = true;
+                break;
             }
 
             if (flg)
             {
-                _buffer = GetBytes("TRUE\0");
-		        Client.GetStream().Write(_buffer, 0, _buffer.Length);
-                Console.WriteLine("	Logged!");
-                Console.WriteLine("	User: " + _strbuffer.Substring(0, _strbuffer.IndexOf(':')));
+                user = "<" + _strbuffer.Substring(0, _strbuffer.IndexOf(':')) + ">";
+
+                ClearBuff();
+                _strbuffer = "TRUE\0";
+                thread = new Thread(SendThread);
+                thread.Start(client);
+                thread.Join();
+                if (_exception) goto disconn;
+
+                Console.WriteLine("	" + user + " Logged!");
             }
 	        else
 	        {
-                _buffer = GetBytes("FALSE\0");
-                Client.GetStream().Write(_buffer, 0, _buffer.Length);
+                ClearBuff();
+                _strbuffer = "FALSE\0";
+                thread = new Thread(SendThread);
+                thread.Start(client);
+                thread.Join();
+                if (_exception) goto disconn;
+
                 Console.WriteLine("	Didn't logged!");
                 goto Relogin;
 	        }
 	        flg = false;
 
-            _buffer = PInvokeFill(GetBytes("\0"));
-            _strbuffer.Remove(0);
+            Console.WriteLine("	" + user + " Waiting readiness ...");
 
-            Console.WriteLine("	Waiting readiness ...");
+            tryagain:
+            ClearBuff();
+            thread = new Thread(RecieveThread);
+            thread.Start(client);
+            thread.Join();
+            if (_exception) goto disconn;
 
-            Client.GetStream().Read(_buffer, 0, _buffer.Length);
-            _strbuffer = GetString(_buffer);
             if (_strbuffer.Substring(0, _strbuffer.IndexOf('\0')).Equals("READY"))
             {
-                Console.WriteLine("	User ready to receive data!");
-                Console.WriteLine("	Sending data ...");
-                var pharmTabl = DataBase.Pharmacies.ToList();
-                foreach (var pharm in pharmTabl)
-                {
-                    Thread.Sleep(5);
-                    _buffer = PInvokeFill(GetBytes("\0"));
-                    _strbuffer = "\0\0\0\0\0\0\0";
+                Console.WriteLine("	" + user + " ready to receive data!");
+                Console.WriteLine("	" + user + " Sending data ...");
+                var pharmTabl = dataBase.Pharmacies.ToList();
+                
+                String tmp1 = pharmTabl.Aggregate("", (current, pharm) => current + (pharm.Product + ":"));
+                ClearBuff();
+                _strbuffer = tmp1;
+                thread = new Thread(SendThread);
+                thread.Start(client);
+                thread.Join();
+                if (_exception) goto disconn;
 
-                    _strbuffer = pharm.Product + ":" + 
-                                 pharm.Vendor + ":" +
-                                 pharm.Count.ToString() + ":" +
-                                 pharm.Price.ToString() + ":" +
-                                 pharm.Year.ToString() + ":" +
-                                 pharm.Description;
-
-                    _buffer = GetBytes(_strbuffer);
-                    Client.GetStream().Write(_buffer, 0, _buffer.Length);
-                }
-
-                _buffer = PInvokeFill(GetBytes("\0"));
-                _strbuffer.Remove(0);
-
-                _buffer = GetBytes("~~");
-                Client.GetStream().Write(_buffer, 0, _buffer.Length);
-                Console.WriteLine("	Data sent!");
+                Console.WriteLine("	" + user + " Data sent!");
             }
+            else goto tryagain;
 
             while (true)
             {
-                _buffer = PInvokeFill(GetBytes("\0"));
-                _strbuffer = "\0\0\0";
+                Console.WriteLine("	" + user + " Waiting readiness ...");
 
-                Console.WriteLine("	Waiting readiness ...");
+                ClearBuff();
+                thread = new Thread(RecieveThread);
+                thread.Start(client);
+                thread.Join();
+                if (_exception) goto disconn;
 
-                Client.GetStream().Read(_buffer, 0, _buffer.Length);
-                _strbuffer = GetString(_buffer);
-
-                if (_strbuffer.Substring(0, _strbuffer.IndexOf('\0')).Equals("READY"))
+                tmp = _strbuffer.Substring(0, _strbuffer.IndexOf('\0'));
+                switch (tmp)
                 {
-                    Console.WriteLine("	User ready to send data!");
-                    Console.WriteLine("	Recieveing data ...");
-                    StreamWriter tmpfile = new StreamWriter("Cart.tmp", true);
-                    //flg = true;
-                    while (true)
-                    {
-                        _buffer = PInvokeFill(GetBytes("\0"));
-                        _strbuffer = "\0\0\0";
+                    case "getdata":
+                        ClearBuff();
+                        thread = new Thread(RecieveThread);
+                        thread.Start(client);
+                        thread.Join();
+                        if (_exception) goto disconn;
 
-                        Client.GetStream().Read(_buffer, 0, _buffer.Length);
-                        _strbuffer = GetString(_buffer);
-                        if (_strbuffer.Substring(0, _strbuffer.IndexOf('\0')).Equals("~~")) 
+                        Console.WriteLine("        " + user + " Get " + _strbuffer.Substring(0, _strbuffer.IndexOf('\0')) + " data.");
+                        var pharmTabl = dataBase.Pharmacies.ToList();
+                        foreach (var pharm in pharmTabl.Where(pharm => pharm.Product == _strbuffer.Substring(0, _strbuffer.IndexOf('\0'))))
+                        {
+                            ClearBuff();
+                            _strbuffer = pharm.Vendor + ":" +
+                                         pharm.Count.ToString() + ":" +
+                                         pharm.Price.ToString() + ":" +
+                                         pharm.Year.ToString() + ":" +
+                                         pharm.Description;
                             break;
-                        
-                        tmpfile.WriteLine(_strbuffer.Substring(0, _strbuffer.IndexOf('\0')));
-                    }
-                    tmpfile.Flush();
-                    tmpfile.Close();
-                    Console.WriteLine("	Data received!");
-                    _buffer = PInvokeFill(GetBytes("\0"));
-                    _strbuffer = "\0\0\0";
-                }
+                        }
 
-                if (_strbuffer.Substring(0, _strbuffer.IndexOf('\0')).Equals("~~")) break;
+                        thread = new Thread(SendThread);
+                        thread.Start(client);
+                        thread.Join();
+                        if (_exception) goto disconn;
+                        break;
+                    case "buyproduct":
+                        Console.WriteLine("        " + user + " Buy products.");
+                        StreamWriter tmpfile = new StreamWriter("Cart.tmp", true);
+
+                        ClearBuff();
+                        thread = new Thread(RecieveThread);
+                        thread.Start(client);
+                        thread.Join();
+
+                        if (_exception) goto disconn;
+
+                        String []splStr = _strbuffer.Substring(0, _strbuffer.LastIndexOf(':')).Split(':');
+                           
+                        foreach (string t in splStr)
+                            tmpfile.WriteLine(t);
+
+                        tmpfile.Flush();
+                        tmpfile.Close();
+
+                        break;
+                    default:
+                        goto disconn;
+                }
             }
 
-            Console.WriteLine("	Diconected!\n");
-            Client.Close();
+            disconn:
+            Console.WriteLine("	" + user + " Diconected!\n");
+            client.Close();
         }
     }
 
     class Server
     {
-        TcpListener Listener; // Объект, принимающий TCP-клиентов
+        readonly TcpListener _listener;
 
-        // Запуск сервера
-        public Server(int Port)
+        public Server(int port)
         {
-            Listener = new TcpListener(IPAddress.Any, Port); // Создаем "слушателя" для указанного порта
-            Listener.Start(); // Запускаем его
+            _listener = new TcpListener(IPAddress.Any, port);
+            _listener.Start();
             Console.WriteLine("\nTCP SERVER STARTED");
             Console.WriteLine("Waiting for connections...\n");
 
-            // В бесконечном цикле
             while (true)
             {
-                // Принимаем нового клиента
-                TcpClient Client = Listener.AcceptTcpClient();
-                // Создаем поток
-                Thread Thread = new Thread(new ParameterizedThreadStart(ClientThread));
-                // И запускаем этот поток, передавая ему принятого клиента
-                Thread.Start(Client);
+                TcpClient client = _listener.AcceptTcpClient();
+                Thread thread = new Thread(ClientThread);
+                thread.Start(client);
                 Console.Write(" " + DateTime.Now.TimeOfDay + " ");
-                Console.WriteLine(" [" + Client.Client.LocalEndPoint + "]");
+                Console.WriteLine(" [" + client.Client.LocalEndPoint + "]");
             }
         }
 
-        static void ClientThread(Object StateInfo)
+        static void ClientThread(Object stateInfo)
         {
-            // Просто создаем новый экземпляр класса Client и передаем ему приведенный к классу TcpClient объект StateInfo
-            new Client((TcpClient) StateInfo);
+            new Client((TcpClient) stateInfo);
         }
 
-        // Остановка сервера
         ~Server()
         {
-            // Если "слушатель" был создан
-            if (Listener != null)
+            if (_listener != null)
             {
-                // Остановим его
-                Listener.Stop();
+                _listener.Stop();
             }
         }
 

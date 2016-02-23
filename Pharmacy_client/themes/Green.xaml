@@ -1,0 +1,53 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:v="clr-namespace:System;assembly=mscorlib">
+
+    <!-- Brushes -->
+    <v:Double x:Key="OpacityVal">0.7</v:Double>
+
+    <SolidColorBrush x:Key="WindowBack" Color="#061405"/>
+
+    <SolidColorBrush x:Key="TitleBarBackgroundBrush" Color="#017b02"  Opacity="1.0"/>
+    <!--ImageBrush x:Key="WindowBack" ImageSource="/Res/back_dark.jpg" /-->
+    <SolidColorBrush x:Key="VS2012WindowBorderBrush" Color="#017b02" />
+    <SolidColorBrush x:Key="VS2012WindowBorderBrushInactive" Color="#999999" />
+    <SolidColorBrush x:Key="VS2012WindowStatusForeground" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="VS2012WindowStatusForegroundInactive" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="GridCol" Color="#061405" Opacity="0"/>
+    <SolidColorBrush x:Key="TextCol" Color="#759b62"/>
+    <SolidColorBrush x:Key="IsMouseOver" Color="#FF009C01"/>
+    <SolidColorBrush x:Key="TitleBtnCol" Color="#759b62"/>
+    <SolidColorBrush x:Key="IsPressed" Color="#FF015F01"/>
+
+    <SolidColorBrush x:Key="TabCtrlCol" Color="#FFCFD0D1"  Opacity="0"/>
+    <SolidColorBrush x:Key="TabCtrlBorderCol" Color="#FF2D2D30"/>
+
+    <SolidColorBrush x:Key="SharingTabCol" Color="#0e3b04" Opacity="{StaticResource OpacityVal}"/>
+    <SolidColorBrush x:Key="SharingTabBorderCol" Color="#0e3b04"/>
+    <SolidColorBrush x:Key="SharingTabTextCol" Color="#759b62"/>
+    <SolidColorBrush x:Key="SharingTabGridCol" Color="#0e3b04" Opacity="{StaticResource OpacityVal}"/>
+
+    <SolidColorBrush x:Key="SettingsTabCol" Color="#0e3b04" Opacity="{StaticResource OpacityVal}"/>
+    <SolidColorBrush x:Key="SettingsTabBorderCol" Color="#0e3b04"/>
+    <SolidColorBrush x:Key="SettingsTabTextCol" Color="#759b62"/>
+    <SolidColorBrush x:Key="SettingsTabGridCol" Color="#0e3b04" Opacity="{StaticResource OpacityVal}"/>
+
+    <SolidColorBrush x:Key="AboutTabCol" Color="#0e3b04" Opacity="{StaticResource OpacityVal}"/>
+    <SolidColorBrush x:Key="AboutTabBorderCol" Color="#0e3b04"/>
+    <SolidColorBrush x:Key="AboutTabTextCol" Color="#759b62"/>
+    <SolidColorBrush x:Key="AboutTabGridCol" Color="#0e3b04" Opacity="{StaticResource OpacityVal}"/>
+    <SolidColorBrush x:Key="AboutTabExpTextCol" Color="#759b62"/>
+    <SolidColorBrush x:Key="AboutTabExpCol" Color="#0e3b04" Opacity="0.5"/>
+    <SolidColorBrush x:Key="AboutTabExpBorderCol" Color="#061405"/>
+
+    <!-- Colors -->
+    <Color x:Key="TitleBarBackgroundBrushCol">#FF2D2D30</Color>
+    <Color x:Key="VS2012WindowBorderBrushCol">#007ACC</Color>
+    <Color x:Key="VS2012WindowBorderBrushInactiveCol">#999999</Color>
+    <Color x:Key="VS2012WindowStatusForegroundCol">#FFFFFF</Color>
+    <Color x:Key="VS2012WindowStatusForegroundInactiveCol">#FFFFFF</Color>
+    <Color x:Key="IsMouseOverCol">#007BFF</Color>
+    <Color x:Key="IsPressedCol">#FFF</Color>
+    <Color x:Key="MinButtonCol">White</Color>
+    <Color x:Key="CloseButtonCol">#FFFFFFFF</Color>
+</ResourceDictionary>

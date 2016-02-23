@@ -14,4 +14,10 @@ C:\Users\Sasha\documents\visual studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharma
 C:\Users\Sasha\documents\visual studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_client\obj\Debug\LoginWnd.g.cs
 C:\Users\Sasha\documents\visual studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_client\obj\Debug\Pharmacy_client.csprojResolveAssemblyReference.cache
 C:\Users\Sasha\documents\visual studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_client\obj\Debug\Pharmacy_client_MarkupCompile.lref
-C:\Users\Sasha\documents\visual studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_client\obj\Debug\GeneratedInternalTypeHelper.g.cs
+C:\Users\Sasha\documents\visual studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_client\obj\Debug\FormStyles\BtnStyle.baml
+C:\Users\Sasha\documents\visual studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_client\obj\Debug\FormStyles\CheckBoxStyle.baml
+C:\Users\Sasha\documents\visual studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_client\obj\Debug\FormStyles\TabControlStyle.baml
+C:\Users\Sasha\documents\visual studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_client\obj\Debug\FormStyles\VS2012WindowStyle.baml
+C:\Users\Sasha\documents\visual studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_client\obj\Debug\FormStyles\VS2012WindowStyle.g.cs
+C:\Users\Sasha\documents\visual studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_client\obj\Debug\FormStyles\Theme.baml
+C:\Users\Sasha\documents\visual studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_client\obj\Debug\App.baml

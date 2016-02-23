@@ -3,6 +3,7 @@ using System.Windows;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace Pharmacy_client
 {
@@ -16,23 +17,53 @@ namespace Pharmacy_client
             InitializeComponent();
         }
 
-        public static Socket _socket;
-        public static byte[] _buffer = new byte[1024];
-        public static String _strbuffer;
-        public static byte[] GetBytes(String str)
+        public static Socket Socket;
+        private static byte[] _buffer = new byte[1024];
+        public static String Strbuffer;
+        public static bool Except = false;
+        private static byte[] GetBytes(String str)
         {
             byte[] bytes = System.Text.Encoding.UTF8.GetBytes(str);
-            //System.Buffer.BlockCopy(str.ToCharArray(), 0, bytes, 0, bytes.Length);
             return bytes;
         }
-        public static String GetString(byte[] bytes)
+        private static String GetString(byte[] bytes)
         {
-            //char[] chars = new char[bytes.Length / sizeof(char)];
-            //System.Buffer.BlockCopy(bytes, 0, chars, 0, bytes.Length);
             char[] chars = System.Text.Encoding.UTF8.GetChars(bytes);
             return new String(chars);
         }
-        public static byte[] PInvokeFill(byte[] value)
+        public static void SendThread(Object socket)
+        {
+            lock (socket)
+            {
+                try
+                {
+                    _buffer = GetBytes(Strbuffer);
+                    ((Socket)socket).Send(_buffer);
+                }
+                catch (Exception)
+                {
+                    Except = true;
+                    MessageBox.Show("Can't send data! {" + Strbuffer + "}", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+        public static void RecieveThread(Object socket)
+        {
+            lock (socket)
+            {
+                try
+                {
+                    ((Socket)socket).Receive(_buffer);
+                    Strbuffer = GetString(_buffer);
+                }
+                catch (Exception)
+                {
+                    Except = true;
+                    MessageBox.Show("Can't recieve data!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+        private static byte[] PInvokeFill(byte[] value)
         {
             var arr = new byte[1024];
             GCHandle gch = GCHandle.Alloc(arr, GCHandleType.Pinned);
@@ -40,39 +71,40 @@ namespace Pharmacy_client
             gch.Free();
             return arr;
         }
+        public static void ClearBuff()
+        {
+            _buffer = PInvokeFill(GetBytes("\0"));
+            Strbuffer = "\0";
+        }
 
         [DllImport("msvcrt.dll",
             EntryPoint = "memset",
             CallingConvention = CallingConvention.Cdecl,
             SetLastError = false)]
-        public static extern IntPtr MemSet(IntPtr dest, int value, int count);
+        private static extern IntPtr MemSet(IntPtr dest, int value, int count);
 
         private void ExitBtn_Click(object sender, RoutedEventArgs e)
         {
-            try
+            if (Socket != null)
             {
-                _buffer = GetBytes("~~");
-                _socket.Send(_buffer);
-                _socket.Close();
-                Close();
+                ClearBuff();
+                Strbuffer = "~~";
+                Thread thread = new Thread(SendThread);
+                thread.Start(Socket);
+                thread.Join();
+                Socket.Close();
             }
-            catch (Exception ex)
-            {
-                Close();
-            }
+            Close();
         }
-
         private void LoginBtn_Click(object sender, RoutedEventArgs e)
         {
+            int cnt = 3;
             try
             {
-                // Connect
-                _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                IPAddress ipAddress = null;
-                IPEndPoint addr = null;
-                ipAddress = System.Net.IPAddress.Parse("127.0.0.1");
-                addr = new IPEndPoint(ipAddress, 6542);
-                _socket.Connect(addr);
+                Socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                var ipAddress = IPAddress.Parse("127.0.0.1");
+                var addr = new IPEndPoint(ipAddress, 6542);
+                Socket.Connect(addr);
             }
             catch (Exception ex)
             {
@@ -80,32 +112,73 @@ namespace Pharmacy_client
                 return;
             }
 
-            _strbuffer = LoginTb.Text + ":" + PassTb.Password + "\0";
+            tryagainS:
+            ClearBuff();
+            Strbuffer = "Hello";
+            Thread thread = new Thread(SendThread);
+            thread.Start(Socket);
+            thread.Join();
 
-            // Login
-            _buffer = GetBytes(_strbuffer);
-            _socket.Send(_buffer);
-
-            _buffer = PInvokeFill(GetBytes("\0"));
-            _strbuffer.Remove(0);
-
-            _socket.Receive(_buffer);
-
-            _strbuffer = GetString(_buffer);
-            if (_strbuffer.Substring(0, _strbuffer.IndexOf('\0')).Equals("TRUE"))
+            if (Except)
             {
-                _buffer = PInvokeFill(GetBytes("\0"));
-                _strbuffer.Remove(0);
+                if (cnt > 0)
+                {
+                    --cnt;
+                    goto tryagainS;
+                }
+                MessageBox.Show("Connetcion error!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+                
+            }
 
+            cnt = 3;
+
+            tryagainR:
+            ClearBuff();
+            thread = new Thread(RecieveThread);
+            thread.Start(Socket);
+            thread.Join();
+
+            if (Except)
+            {
+                if (cnt > 0)
+                {
+                    --cnt;
+                    goto tryagainR;
+                }
+                MessageBox.Show("Connetcion error!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            cnt = 3;
+
+            ClearBuff();
+            Strbuffer = LoginTb.Text + ":" + PassTb.Password + "\0";
+            // Login
+            thread = new Thread(SendThread);
+            thread.Start(Socket);
+            thread.Join();
+
+            if (Except)
+            {
+                MessageBox.Show("Connetcion error!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
+            ClearBuff();
+            thread = new Thread(RecieveThread);
+            thread.Start(Socket);
+            thread.Join();
+
+            if (Except)
+            {
+                MessageBox.Show("Connetcion error!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
+            if (Strbuffer.Substring(0, Strbuffer.IndexOf('\0')).Equals("TRUE"))
+            {
                 UserWnd userWnd = new UserWnd();
                 userWnd.Show();
                 Close();
-                //Hide();
             }
             else
             {
-                _buffer = PInvokeFill(GetBytes("\0"));
-                _strbuffer.Remove(0);
                 MessageBox.Show("Missing login or password!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }

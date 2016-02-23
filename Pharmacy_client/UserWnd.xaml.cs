@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -27,98 +29,107 @@ namespace Pharmacy_client
         }
         private void Window_Closed(object sender, EventArgs e)
         {
-            try
+            if (LoginWnd.Socket.Connected)
             {
-                LoginWnd._buffer = LoginWnd.GetBytes("~~");
-                LoginWnd._socket.Send(LoginWnd._buffer);
-                LoginWnd._socket.Close();
-                Close();
+                LoginWnd.ClearBuff();
+                LoginWnd.Strbuffer = "~~";
+                Thread thread = new Thread(LoginWnd.SendThread);
+                thread.Start(LoginWnd.Socket);
+                thread.Join();
+                LoginWnd.Socket.Close();
             }
-            catch (Exception ex)
-            {
-                Close();
-            }
+            Close();
         }
 
-        List<String[]> mProductLst = new List<String[]>();
-        List<String[]> mCartLst = new List<String[]>();
+        private readonly List<String> _mProductLst = new List<String>();
+        private readonly List<String[]> _mCartLst = new List<String[]>();
 
         private void CountTb_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key >= Key.D0 && e.Key <= Key.D9) return;
+            if ((e.Key >= Key.D0 && e.Key <= Key.D9) || 
+                (e.Key >= Key.NumPad0 && e.Key <= Key.NumPad9)) return;
             else e.Handled = true;
         }
         private void Window_Initialized(object sender, EventArgs e)
         {
             #region ready
-            try
-            {
-                LoginWnd._buffer = LoginWnd.GetBytes("READY");
-                LoginWnd._socket.Send(LoginWnd._buffer);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Server not ready!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
+            LoginWnd.ClearBuff();
+            LoginWnd.Strbuffer = "READY";
+            var thread = new Thread(LoginWnd.SendThread);
+            thread.Start(LoginWnd.Socket);
+            thread.Join();
+            if (LoginWnd.Except) MessageBox.Show("Connetcion error!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
             #endregion
             #region Receiving DB
-            // Creating the filestream and file
-            StreamWriter tmpfile = new StreamWriter("Pharm_db.tmp", true);
+            LoginWnd.ClearBuff();
+            thread = new Thread(LoginWnd.RecieveThread);
+            thread.Start(LoginWnd.Socket);
+            thread.Join();
+            if (LoginWnd.Except) MessageBox.Show("Connetcion error!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
 
-            // Receiving the file from client
-            while (true)
+            String[] tmpStr = LoginWnd.Strbuffer.Substring(0, LoginWnd.Strbuffer.LastIndexOf(":", StringComparison.Ordinal)).Split(':');
+
+            foreach (string t in tmpStr)
             {
-                LoginWnd._buffer = LoginWnd.PInvokeFill(LoginWnd.GetBytes("\0"));
-                LoginWnd._strbuffer.Remove(0);
-                //LoginWnd._socket.Receive(LoginWnd._buffer, 0, LoginWnd._buffer.Length, SocketFlags.None);
-                LoginWnd._socket.Receive(LoginWnd._buffer);
-                LoginWnd._strbuffer = LoginWnd.GetString(LoginWnd._buffer);
-                if (LoginWnd._strbuffer[0] == '~' && LoginWnd._strbuffer[1] == '~') break;
-
-                //tmpfile.Write(LoginWnd._buffer, 0, LoginWnd._buffer.Length);
-                tmpfile.WriteLine(LoginWnd._strbuffer.Substring(0, LoginWnd._strbuffer.IndexOf('\0')));
-            }
-            tmpfile.Flush();
-            tmpfile.Close();
-#endregion
-            #region Reading DB
-            StreamReader file = new StreamReader("Pharm_db.tmp");
-            String[] strSpl;
-
-            while (!file.EndOfStream)
-            {
-                strSpl = file.ReadLine().Split(':');
-                mProductLst.Add(strSpl);
+                _mProductLst.Add(t);
+                ProductsLbox.Items.Add(t);
             }
 
-            file.Close();
-            File.Delete("Pharm_db.tmp");
-            #endregion
-            #region View DB
-            for (int i = 0; i < mProductLst.Count; ++i)
-                ProductsLbox.Items.Add(mProductLst[i][0]);
-
-            ProductsLbox.SelectedItem = 0;
-            ProductLb.Content = mProductLst[0][0];
-            VendorLb.Content = mProductLst[0][1];
-            PurchLb.Content = mProductLst[0][2];
-            PriceLb.Content = mProductLst[0][3];
-            YearLb.Content = mProductLst[0][4];
-            DescrLb.Content = mProductLst[0][5];
             #endregion
         }
         private void ProductsLbox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            ProductLb.Content = mProductLst[ProductsLbox.SelectedIndex][0];
-            VendorLb.Content = mProductLst[ProductsLbox.SelectedIndex][1];
-            PurchLb.Content = mProductLst[ProductsLbox.SelectedIndex][2];
-            PriceLb.Content = mProductLst[ProductsLbox.SelectedIndex][3];
-            YearLb.Content = mProductLst[ProductsLbox.SelectedIndex][4];
-            DescrLb.Content = mProductLst[ProductsLbox.SelectedIndex][5];
+            ProductLb.Content = _mProductLst[ProductsLbox.SelectedIndex];
+
+            LoginWnd.ClearBuff();
+            LoginWnd.Strbuffer = "getdata";
+            Thread thread = new Thread(LoginWnd.SendThread);
+            thread.Start(LoginWnd.Socket);
+            thread.Join();
+
+            if (LoginWnd.Except) MessageBox.Show("Connetcion error!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+
+            LoginWnd.ClearBuff();
+            LoginWnd.Strbuffer = _mProductLst[ProductsLbox.SelectedIndex];
+            thread = new Thread(LoginWnd.SendThread);
+            thread.Start(LoginWnd.Socket);
+            thread.Join();
+
+            if (LoginWnd.Except) MessageBox.Show("Connetcion error!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+
+            LoginWnd.ClearBuff();
+            thread = new Thread(LoginWnd.RecieveThread);
+            thread.Start(LoginWnd.Socket);
+            thread.Join();
+
+            if (LoginWnd.Except) MessageBox.Show("Connetcion error!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+
+            String[] splStr = LoginWnd.Strbuffer.Split(':');
+
+            VendorLb.Content = splStr[0];
+            PurchLb.Content = splStr[1];
+            PriceLb.Content = splStr[2];
+            YearLb.Content = splStr[3];
+            DescrLb.Content = splStr[4].Substring(0, splStr[4].IndexOf('\0'));
         }
         private void CartBtn_Click(object sender, RoutedEventArgs e)
         {
+            try
+            {
+                int.Parse(CountTb.Text);
+            }
+            catch (Exception)
+            {
+                CountTb.Background = new SolidColorBrush(Colors.PaleVioletRed);
+                return;
+            }
+
+            if (ProductsLbox.SelectedIndex < 0 || (string) VendorLb.Content == " ")
+            {
+                MessageBox.Show("Please, select product!");
+                return;
+            }
+
             if ((CountTb.Text[0] != '0') && 
                 ((int.Parse(PurchLb.Content.ToString())) >= (int.Parse(CountTb.Text))))
             {
@@ -130,27 +141,27 @@ namespace Pharmacy_client
                 tmp.SetValue((double.Parse(PriceLb.Content.ToString())*int.Parse(CountTb.Text)).ToString(), 3);
                 #endregion
                 #region Add New Item
-                mCartLst.Add(tmp);
+                _mCartLst.Add(tmp);
 
-                Row item = new Row() {ProductBnd = tmp[0], PriceBnd = tmp[1], CountBnd = tmp[2], SumBnd = tmp[3]};
+                Row item = new Row() {ProductBnd = tmp[0], 
+                                      PriceBnd = tmp[1], 
+                                      CountBnd = tmp[2], 
+                                      SumBnd = tmp[3]};
                 CartData.Items.Add(item);
                 #region Union
-                Row tmpitm = new Row();
                 for (int i = 0; i < CartData.Items.Count; ++i)
                 {
                     for (int j = 0; j < CartData.Items.Count; ++j)
                     {
                         if (i == j) continue;
                         item = CartData.Items[i] as Row;
-                        tmpitm = CartData.Items[j] as Row;
-                        if (item.ProductBnd == tmpitm.ProductBnd)
-                        {
-                            item.CountBnd = ((int.Parse(item.CountBnd)) + (int.Parse(tmpitm.CountBnd))).ToString();
-                            item.SumBnd = ((double.Parse(item.SumBnd)) + (double.Parse(tmpitm.SumBnd))).ToString();
-                            CartData.Items.Remove(CartData.Items[j]);
-                            CartData.Items.Remove(CartData.Items[i]);
-                            CartData.Items.Add(item);
-                        }
+                        var tmpitm = CartData.Items[j] as Row;
+                        if (item.ProductBnd != tmpitm.ProductBnd) continue;
+                        item.CountBnd = ((int.Parse(item.CountBnd)) + (int.Parse(tmpitm.CountBnd))).ToString();
+                        item.SumBnd = ((double.Parse(item.SumBnd)) + (double.Parse(tmpitm.SumBnd))).ToString(CultureInfo.InvariantCulture);
+                        CartData.Items.Remove(CartData.Items[j]);
+                        CartData.Items.Remove(CartData.Items[i]);
+                        CartData.Items.Add(item);
                     }
                 }
                 #endregion
@@ -176,78 +187,69 @@ namespace Pharmacy_client
                 MessageBox.Show("Cart is empty!");
                 return;
             }
-            int idx = -1;
-            idx = CartData.SelectedIndex;
+            var idx = CartData.SelectedIndex;
 
-            TotSumLb.Content = ((double.Parse(TotSumLb.Content.ToString())) - (double.Parse(mCartLst[idx][3]))).ToString();
+            if (idx < 0)
+            {
+                MessageBox.Show("Please, select item!");
+                return;
+            }
+
+            TotSumLb.Content = ((double.Parse(TotSumLb.Content.ToString())) - (double.Parse(_mCartLst[idx][3]))).ToString(CultureInfo.InvariantCulture);
 
             CartData.Items.Remove(CartData.Items[idx]);
-            mCartLst.Remove(mCartLst[idx]);
+            _mCartLst.Remove(_mCartLst[idx]);
         }
         private void BuyBtn_Click(object sender, RoutedEventArgs e)
         {
-            //return;
             if (CartData.Items.IsEmpty)
             {
                 MessageBox.Show("Cart is empty!");
                 return;
             }
             #region Creating DB
-            StreamWriter CartWr = new StreamWriter("Cart.tmp", true);
-            String Str = "";
 
-            for (int i = 0; i < mCartLst.Count; ++i)
+            StreamWriter cartWr = new StreamWriter("Cart.tmp", true);
+            foreach (var str in _mCartLst.Select(t => t[0] + ":" + t[1] + ":" + t[2] + ":" + t[3]))
             {
-                Str = mCartLst[i][0] + ":" + mCartLst[i][1] + ":" + mCartLst[i][2] + ":" + mCartLst[i][3];
-                CartWr.WriteLine(Str);
+                cartWr.WriteLine(str);
             }
 
-            CartWr.Flush();
-            CartWr.Close();
+            cartWr.Flush();
+            cartWr.Close();
             #endregion
             #region ready
-            try
-            {
-                LoginWnd._buffer = LoginWnd.GetBytes("READY");
-                LoginWnd._socket.Send(LoginWnd._buffer);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Server not ready!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
+            LoginWnd.ClearBuff();
+            LoginWnd.Strbuffer = "buyproduct";
+            Thread thread = new Thread(LoginWnd.SendThread);
+            thread.Start(LoginWnd.Socket);
+            thread.Join();
+
+            if (LoginWnd.Except) MessageBox.Show("Connetcion error!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
             #endregion
             #region Sending DB
-            // Creating the filestream and file
             StreamReader tmpfile = new StreamReader("Cart.tmp");
 
-            // Receiving the file from client
+            String tmp = "";
             while (!tmpfile.EndOfStream)
             {
-                Thread.Sleep(5);
-                LoginWnd._buffer = LoginWnd.PInvokeFill(LoginWnd.GetBytes("\0"));
-                LoginWnd._strbuffer.Remove(0);
-
-                LoginWnd._strbuffer = tmpfile.ReadLine();
-                LoginWnd._buffer = LoginWnd.GetBytes(LoginWnd._strbuffer);
-
-                LoginWnd._socket.Send(LoginWnd._buffer);
+                tmp += tmpfile.ReadLine() + ":";
             }
-            LoginWnd._buffer = LoginWnd.PInvokeFill(LoginWnd.GetBytes("\0"));
-            LoginWnd._strbuffer.Remove(0);
 
-            LoginWnd._buffer = LoginWnd.GetBytes("~~");
-            LoginWnd._socket.Send(LoginWnd._buffer);
+            LoginWnd.ClearBuff();
+            LoginWnd.Strbuffer = tmp;
 
-            LoginWnd._buffer = LoginWnd.PInvokeFill(LoginWnd.GetBytes("\0"));
-            LoginWnd._strbuffer.Remove(0);
+            thread = new Thread(LoginWnd.SendThread);
+            thread.Start(LoginWnd.Socket);
+            thread.Join();
 
+            if (LoginWnd.Except) MessageBox.Show("Connetcion error!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
             tmpfile.Close();
-            File.Delete("Cart.tmp");
+            //File.Delete("Cart.tmp");
             #endregion
             #region Clear
-            for (int i = mCartLst.Count - 1; i >= 0; --i)
-                mCartLst.Remove(mCartLst[i]);
+            for (int i = _mCartLst.Count - 1; i >= 0; --i)
+                _mCartLst.Remove(_mCartLst[i]);
             for (int i = CartData.Items.Count - 1; i >= 0; --i)
                 CartData.Items.Remove(CartData.Items[i]);
             TotSumLb.Content = "0";

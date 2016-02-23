@@ -3,6 +3,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              StartupUri="LoginWnd.xaml">
     <Application.Resources>
-         
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="FormStyles/VS2012WindowStyle.xaml" />
+                <ResourceDictionary Source="FormStyles/Theme.xaml"/>
+                <ResourceDictionary Source="FormStyles/BtnStyle.xaml" />
+                <ResourceDictionary Source="FormStyles/CheckBoxStyle.xaml" />
+                <ResourceDictionary Source="FormStyles/TabControlStyle.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </Application.Resources>
 </Application>
