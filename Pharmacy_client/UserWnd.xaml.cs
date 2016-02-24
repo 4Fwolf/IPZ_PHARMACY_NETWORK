@@ -29,6 +29,7 @@ namespace Pharmacy_client
         }
         private void Window_Closed(object sender, EventArgs e)
         {
+            return;
             if (LoginWnd.Socket.Connected)
             {
                 LoginWnd.ClearBuff();
@@ -254,6 +255,23 @@ namespace Pharmacy_client
                 CartData.Items.Remove(CartData.Items[i]);
             TotSumLb.Content = "0";
             #endregion
+        }
+        private void CloseButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            if (LoginWnd.Socket.Connected)
+            {
+                LoginWnd.ClearBuff();
+                LoginWnd.Strbuffer = "~~";
+                Thread thread = new Thread(LoginWnd.SendThread);
+                thread.Start(LoginWnd.Socket);
+                thread.Join();
+                LoginWnd.Socket.Close();
+            }
+            Close();
+        }
+        private void MinButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = WindowState.Minimized;
         }
     }
 }

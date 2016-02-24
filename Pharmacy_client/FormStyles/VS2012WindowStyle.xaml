@@ -97,7 +97,11 @@
                                             FontSize="12"
                                             FontWeight="Bold"
                                             Opacity="0.8"
-                                            Text="{Binding Path=Title, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" Foreground="{DynamicResource TextColTitle}" Visibility="Visible" TextAlignment="Center"
+                                            Text="{Binding Path=Title, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" 
+                                            Foreground="{DynamicResource TextColTitle}" 
+                                            Visibility="Visible" 
+                                            TextAlignment="Center" 
+                                            Margin="40,0,0,0"
                                             >
                                                 <TextBlock.Effect>
                                                     <DropShadowEffect
@@ -109,25 +113,28 @@
                                                 </TextBlock.Effect>
                                         </TextBlock>
                                         <Button
-                                            x:Name="MinButton" 
+                                            Panel.ZIndex="1" 
                                             Grid.Column="3"
+                                            x:Name="MinButton" 
                                             VerticalAlignment="Top"
                                             Width="34"
                                             Height="26"
                                             Style="{StaticResource Vs2012WindowStyleTitleBarButton}"
-                                            Click="MinButtonClick" Foreground="{DynamicResource TitleBtnCol}"
+                                            Click="MinButtonClick" 
+                                            Foreground="{DynamicResource TitleBtnCol}" 
                                             >
-                                            <Grid MaxHeight="9" MaxWidth="9">
-                                                <Path
+                                                <Grid MaxHeight="9" MaxWidth="9">
+                                                    <Path
                                                     Stroke="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}"
                                                     StrokeThickness="1"
                                                     Stretch="None"
                                                     RenderOptions.EdgeMode="Aliased"
                                                     Data="M0,8 H8 M0,7 H8 M0,6 H8"
                                                     />
-                                            </Grid>
-                                        </Button>
+                                                </Grid>
+                                            </Button>
                                         <Button
+                                            Panel.ZIndex="1"
                                             Grid.Column="4"
                                             x:Name="CloseButton" 
                                             VerticalAlignment="Top"

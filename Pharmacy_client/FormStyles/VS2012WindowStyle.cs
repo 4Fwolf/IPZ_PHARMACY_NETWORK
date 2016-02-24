@@ -18,13 +18,11 @@ namespace Pharmacy_client.Styles.CustomizedWindow
                 if (element is Window) { action(element as Window); break; }
             }
         }
-
         public static void ForWindowFromTemplate(this object templateFrameworkElement, Action<Window> action)
         {
             Window window = ((FrameworkElement)templateFrameworkElement).TemplatedParent as Window;
             if (window != null) action(window);
         }
-
         public static IntPtr GetWindowHandle(this Window window)
         {
             WindowInteropHelper helper = new WindowInteropHelper(window);
@@ -48,17 +46,14 @@ namespace Pharmacy_client.Styles.CustomizedWindow
                     SendMessage(w.GetWindowHandle(), WmSyscommand, (IntPtr)ScKeymenu, (IntPtr)' '));
             }
         }
-
         public void CloseButtonClick(object sender, RoutedEventArgs e)
         {
             sender.ForWindowFromTemplate(w => w.Close());
         }
-
         void MinButtonClick(object sender, RoutedEventArgs e)
         {
             sender.ForWindowFromTemplate(SystemCommands.MinimizeWindow);
         }
-
         void TitleBarMouseMove(object sender, MouseEventArgs e)
         {
             if (e.LeftButton == MouseButtonState.Pressed)
@@ -83,7 +78,6 @@ namespace Pharmacy_client.Styles.CustomizedWindow
             SendMessage(handle, WmSyscommand, (IntPtr)(ScSize + sizingAction), IntPtr.Zero);
             SendMessage(handle, 514, IntPtr.Zero, IntPtr.Zero);
         }
-
         public enum SizingAction
         {
             North = 3,

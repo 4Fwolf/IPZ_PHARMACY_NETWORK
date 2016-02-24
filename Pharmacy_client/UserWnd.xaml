@@ -5,9 +5,7 @@
         xmlns:local="clr-namespace:Pharmacy_client"
         xmlns:collections="clr-namespace:System.Collections;assembly=mscorlib"
         x:Class="Pharmacy_client.UserWnd"
-    Style="{DynamicResource Vs2012WindowStyle}"
-        Title="UserWnd" Height="222" Width="440" Closed="Window_Closed" ContentRendered="Window_Initialized" ResizeMode="NoResize" WindowStyle="None">
-
+        Title="UserWnd" Height="208" Width="424" Closed="Window_Closed" ContentRendered="Window_Initialized" ResizeMode="NoResize" WindowStyle="None">
     <Window.Triggers>
         <EventTrigger RoutedEvent="Window.Loaded">
             <EventTrigger.Actions>
@@ -21,12 +19,32 @@
             </EventTrigger.Actions>
         </EventTrigger>
     </Window.Triggers>
-
-    <!--Grid-->
-    <TabControl x:Name="TabCtrl" HorizontalAlignment="Left" Height="202" VerticalAlignment="Top" Width="427" BorderBrush="{DynamicResource TabCtrlCol}" Background="{DynamicResource TabCtrlCol}" Margin="0,-28,-3,0">
+    <Grid Background="{DynamicResource TitleBarBackgroundBrush}">
+        <Button x:Name="CloseButton" HorizontalAlignment="Left" Margin="389,0,0,0" VerticalAlignment="Top" Width="34" Height="26" Background="Transparent" BorderBrush="Transparent" Panel.ZIndex="1" Style="{StaticResource Vs2012WindowStyleTitleBarButton}" Click="CloseButton_OnClick">
+            <Grid MaxHeight="9" MaxWidth="9">
+                <Path
+                    Stroke="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}"
+                    StrokeThickness="1.5"
+                    Stretch="None"
+                    Data="M0,0 L8,8 M0,8 L8,0"
+                    />
+            </Grid>
+        </Button>
+        <Button x:Name="MinButton" HorizontalAlignment="Left" Margin="355,0,0,0" VerticalAlignment="Top" Width="34" Height="26" Background="Transparent" BorderBrush="Transparent" Panel.ZIndex="1" Style="{StaticResource Vs2012WindowStyleTitleBarButton}" Click="MinButton_OnClick">
+            <Grid MaxHeight="9" MaxWidth="9">
+                <Path
+                    Stroke="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}"
+                    StrokeThickness="1"
+                    Stretch="None"
+                    RenderOptions.EdgeMode="Aliased"
+                    Data="M0,8 H8 M0,7 H8 M0,6 H8"
+                    />
+            </Grid>
+        </Button>
+        <TabControl x:Name="TabCtrl" HorizontalAlignment="Left" Height="200" VerticalAlignment="Top" Width="426" BorderBrush="{DynamicResource TabCtrlCol}" Background="{DynamicResource TabCtrlCol}" Margin="-1,9,0,0">
         <TabItem Header="Products" Background="{DynamicResource ItemTabCol}" BorderBrush="{DynamicResource ItemTabBorderCol}" Margin="1,0,0,-3" Foreground="{DynamicResource ItemTabTextCol}" Style="{DynamicResource TabItemStyle}">
             <Grid Background="#FFE5E5E5">
-                <Button x:Name="CartBtn" Content="Add to Cart" HorizontalAlignment="Left" Margin="333,10,0,0" VerticalAlignment="Top" Width="75" Click="CartBtn_Click"/>
+                <Button x:Name="CartBtn" Content="Add to Cart" HorizontalAlignment="Left" Margin="333,10,0,0" VerticalAlignment="Top" Height="20" Width="75" Click="CartBtn_Click" Style="{DynamicResource BtnStyle}"/>
                 <TextBox x:Name="CountTb" HorizontalAlignment="Left" Height="22" Margin="373,35,0,0" TextWrapping="Wrap" Text="1" MaxLength="3" VerticalAlignment="Top" Width="35" KeyDown="CountTb_KeyDown" MouseEnter="CountTb_MouseEnter"/>
                 <Label Content="Count:" HorizontalAlignment="Left" Margin="328,31,0,0" VerticalAlignment="Top" FontWeight="Bold"/>
                 <ListBox x:Name="ProductsLbox" HorizontalAlignment="Left" Height="170" VerticalAlignment="Top" Width="123" SelectionChanged="ProductsLbox_SelectionChanged"/>
@@ -42,25 +60,26 @@
                 <Label x:Name="DescrLb" Content=" " HorizontalAlignment="Left" Margin="206,113,0,0" VerticalAlignment="Top"/>
                 <Label Content="Price:" HorizontalAlignment="Left" Margin="328,57,0,0" VerticalAlignment="Top" FontWeight="Bold"/>
                 <Label x:Name="PriceLb" Content=" " HorizontalAlignment="Left" Margin="369,57,0,0" VerticalAlignment="Top"/>
+
             </Grid>
         </TabItem>
         <TabItem Header="Cart" Background="{DynamicResource ItemTabCol}" BorderBrush="{DynamicResource ItemTabBorderCol}" Margin="1,0,0,-3" Foreground="{DynamicResource ItemTabTextCol}" Style="{DynamicResource TabItemStyle}">
             <Grid Background="#FFE5E5E5">
-                <Button x:Name="BuyBtn" Content="Buy" HorizontalAlignment="Left" Margin="333,140,0,0" VerticalAlignment="Top" Width="75" Click="BuyBtn_Click"/>
-                <DataGrid x:Name="CartData" HorizontalAlignment="Left" VerticalAlignment="Top" RenderTransformOrigin="0.5,0.538" Height="135" Width="424" AutoGenerateColumns="False" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserResizeRows="False" CanUserSortColumns="False" VerticalScrollBarVisibility="Visible" BeginningEdit="CartData_BeginningEdit" IsReadOnly="True" SelectionMode="Single" Margin="-3,0,0,0">
+                    <Button x:Name="BuyBtn" Content="Buy" Height="20" HorizontalAlignment="Left" Margin="333,140,0,0" VerticalAlignment="Top" Width="75" Click="BuyBtn_Click" Style="{DynamicResource BtnStyle}"/>
+                <DataGrid x:Name="CartData" HorizontalAlignment="Left" VerticalAlignment="Top" RenderTransformOrigin="0.5,0.538" Height="135" Width="424" AutoGenerateColumns="False" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserResizeRows="False" CanUserSortColumns="False" VerticalScrollBarVisibility="Visible" BeginningEdit="CartData_BeginningEdit" IsReadOnly="True" SelectionMode="Single" Margin="-1,0,0,0">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Binding="{Binding ProductBnd}" ClipboardContentBinding="{x:Null}" Header="Product" Width="195"/>
-                        <DataGridTextColumn Binding="{Binding PriceBnd}" ClipboardContentBinding="{x:Null}" Header="Price" Width="65"/>
-                        <DataGridTextColumn Binding="{Binding CountBnd}" ClipboardContentBinding="{x:Null}" Header="Count" Width="65"/>
-                        <DataGridTextColumn Binding="{Binding SumBnd}" ClipboardContentBinding="{x:Null}" Header="Sum" Width="65" CanUserReorder="True"/>
+                        <DataGridTextColumn Binding="{Binding ProductBnd}" ClipboardContentBinding="{x:Null}" Header="Product" Width="198"/>
+                        <DataGridTextColumn Binding="{Binding PriceBnd}" ClipboardContentBinding="{x:Null}" Header="Price" Width="67"/>
+                        <DataGridTextColumn Binding="{Binding CountBnd}" ClipboardContentBinding="{x:Null}" Header="Count" Width="67"/>
+                        <DataGridTextColumn Binding="{Binding SumBnd}" ClipboardContentBinding="{x:Null}" Header="Sum" Width="67" CanUserReorder="True"/>
                     </DataGrid.Columns>
                 </DataGrid>
-                <Button x:Name="DelBtn" Content="Delete" HorizontalAlignment="Left" Margin="10,140,0,0" VerticalAlignment="Top" Width="75" Click="DelBtn_Click"/>
+                    <Button x:Name="DelBtn" Height="20" Content="Delete" HorizontalAlignment="Left" Margin="10,140,0,0" VerticalAlignment="Top" Width="75" Click="DelBtn_Click" Style="{DynamicResource BtnStyle}"/>
                 <Label Content="Total:" HorizontalAlignment="Left" Margin="90,137,0,0" VerticalAlignment="Top"/>
                 <Label x:Name="TotSumLb"  Content="0" HorizontalAlignment="Left" Margin="133,137,0,0" VerticalAlignment="Top"/>
             </Grid>
         </TabItem>
     </TabControl>
 
-    <!--/Grid-->
+    </Grid>
 </Window>
