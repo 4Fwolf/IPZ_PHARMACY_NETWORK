@@ -19,7 +19,7 @@
             </EventTrigger.Actions>
         </EventTrigger>
     </Window.Triggers>
-    <Grid Background="{DynamicResource TitleBarBackgroundBrush}">
+    <Grid Background="{DynamicResource TitleBarBackgroundBrush}" MouseLeftButtonDown="Grid_MouseLeftButtonDown">
         <Button x:Name="CloseButton" HorizontalAlignment="Left" Margin="389,0,0,0" VerticalAlignment="Top" Width="34" Height="26" Background="Transparent" BorderBrush="Transparent" Panel.ZIndex="1" Style="{StaticResource Vs2012WindowStyleTitleBarButton}" Click="CloseButton_OnClick">
             <Grid MaxHeight="9" MaxWidth="9">
                 <Path

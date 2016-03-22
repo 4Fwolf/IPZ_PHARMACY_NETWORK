@@ -273,5 +273,10 @@ namespace Pharmacy_client
         {
             this.WindowState = WindowState.Minimized;
         }
+
+        private void Grid_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            this.DragMove();
+        }
     }
 }
