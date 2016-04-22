@@ -1,0 +1,8 @@
+C:\Users\Sasha\Documents\Visual Studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_server\bin\Release\Pharmacy_server.exe.config
+C:\Users\Sasha\Documents\Visual Studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_server\bin\Release\Logins_db.mdf
+C:\Users\Sasha\Documents\Visual Studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_server\bin\Release\Logins_db_log.ldf
+C:\Users\Sasha\Documents\Visual Studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_server\bin\Release\Pharmacy_server.exe
+C:\Users\Sasha\Documents\Visual Studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_server\bin\Release\Pharmacy_server.pdb
+C:\Users\Sasha\Documents\Visual Studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_server\obj\Release\Pharmacy_server.exe
+C:\Users\Sasha\Documents\Visual Studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_server\obj\Release\Pharmacy_server.pdb
+C:\Users\Sasha\Documents\Visual Studio 2013\Projects\IPZ_PHARMACY_NETWORK\Pharmacy_server\obj\Release\Pharmacy_server.csprojResolveAssemblyReference.cache

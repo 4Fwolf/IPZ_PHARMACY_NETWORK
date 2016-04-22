@@ -3,11 +3,17 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
+using KeyEventArgs = System.Windows.Input.KeyEventArgs;
+using MessageBox = System.Windows.MessageBox;
+using MouseEventArgs = System.Windows.Input.MouseEventArgs;
 
 namespace Pharmacy_client
 {
@@ -23,6 +29,8 @@ namespace Pharmacy_client
     /// </summary>
     public partial class UserWnd : Window
     {
+        public string login;
+        public string password;
         public UserWnd()
         {
             InitializeComponent();
@@ -44,14 +52,112 @@ namespace Pharmacy_client
 
         private readonly List<String> _mProductLst = new List<String>();
         private readonly List<String[]> _mCartLst = new List<String[]>();
+        private object Locker = new object();
+        //public Socket Socket;
+        public IPEndPoint addr;
 
+        private bool recond;
+
+        private void Reconnect()
+        {
+            lock (Locker)
+            {
+                //Dispatcher.Invoke(new MethodInvoker(() => { IsEnabled = false; }), null);
+                //int cnt = 3;
+                try
+                {
+                    LoginWnd.Socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                    //var ipAddress = IPAddress.Parse("127.0.0.1");
+                    //var addr = new IPEndPoint(ipAddress, 6542);
+                    LoginWnd.Socket.Connect(addr);
+                }
+                catch
+                {
+                    return;
+                }
+
+                LoginWnd.Except = false;
+                LoginWnd.ClearBuff();
+                LoginWnd.Strbuffer = "Hello";
+                Thread thread = new Thread(LoginWnd.SendThread);
+                thread.Start(LoginWnd.Socket);
+                thread.Join();
+
+                if (LoginWnd.Except)
+                {
+                    return;
+                }
+
+                LoginWnd.ClearBuff();
+                thread = new Thread(LoginWnd.RecieveThread);
+                thread.Start(LoginWnd.Socket);
+                thread.Join();
+
+                if (LoginWnd.Except)
+                {
+                    return;
+                }
+
+                LoginWnd.ClearBuff();
+                LoginWnd.Strbuffer = login + ":" + password + "\0";
+                // Login
+                thread = new Thread(LoginWnd.SendThread);
+                thread.Start(LoginWnd.Socket);
+                thread.Join();
+
+                if (LoginWnd.Except)
+                {
+                    return;
+                }
+
+                LoginWnd.ClearBuff();
+                thread = new Thread(LoginWnd.RecieveThread);
+                thread.Start(LoginWnd.Socket);
+                thread.Join();
+
+                if (LoginWnd.Except)
+                {
+                    return;
+                }
+
+                if (LoginWnd.Strbuffer.Substring(0, LoginWnd.Strbuffer.IndexOf('\0')).Equals("TRUE"))
+                {
+                    recond = true;
+                    Dispatcher.Invoke(new MethodInvoker(() =>
+                    {
+                        ProductsLbox.SelectedIndex = -1; 
+                        _mProductLst.Clear(); 
+                        ProductsLbox.Items.Clear(); 
+                        Init(); 
+                        TabCtrl.IsEnabled = true; 
+                    }), null);
+                }
+                else
+                {
+                    MessageBox.Show("Missing login or password!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        private void reconn()
+        {
+            recond = false;
+            for (int i = 0; i < 10; ++i)
+            {
+                Thread recon = new Thread(Reconnect);
+                recon.Start();
+                recon.Join();
+                if (recond) return;
+                Thread.Sleep(2000);
+            }
+        }
         private void CountTb_KeyDown(object sender, KeyEventArgs e)
         {
             if ((e.Key >= Key.D0 && e.Key <= Key.D9) || 
                 (e.Key >= Key.NumPad0 && e.Key <= Key.NumPad9)) return;
             else e.Handled = true;
         }
-        private void Window_Initialized(object sender, EventArgs e)
+        private void Init()
         {
             #region ready
             LoginWnd.ClearBuff();
@@ -59,14 +165,28 @@ namespace Pharmacy_client
             var thread = new Thread(LoginWnd.SendThread);
             thread.Start(LoginWnd.Socket);
             thread.Join();
-            if (LoginWnd.Except) MessageBox.Show("Connetcion error!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+            if (LoginWnd.Except)
+            {
+                TabCtrl.IsEnabled = false;
+                Thread recon = new Thread(reconn);
+                recon.Start();
+                MessageBox.Show("Connetcion error!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
             #endregion
             #region Receiving DB
             LoginWnd.ClearBuff();
             thread = new Thread(LoginWnd.RecieveThread);
             thread.Start(LoginWnd.Socket);
             thread.Join();
-            if (LoginWnd.Except) MessageBox.Show("Connetcion error!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+            if (LoginWnd.Except)
+            {
+                TabCtrl.IsEnabled = false;
+                Thread recon = new Thread(reconn);
+                recon.Start();
+                MessageBox.Show("Connetcion error!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
 
             String[] tmpStr = LoginWnd.Strbuffer.Substring(0, LoginWnd.Strbuffer.LastIndexOf(":", StringComparison.Ordinal)).Split(':');
 
@@ -78,8 +198,13 @@ namespace Pharmacy_client
 
             #endregion
         }
+        private void Window_Initialized(object sender, EventArgs e)
+        {
+            Init();
+        }
         private void ProductsLbox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            if (ProductsLbox.SelectedIndex < 0) return;
             ProductLb.Content = _mProductLst[ProductsLbox.SelectedIndex];
 
             LoginWnd.ClearBuff();
@@ -88,7 +213,14 @@ namespace Pharmacy_client
             thread.Start(LoginWnd.Socket);
             thread.Join();
 
-            if (LoginWnd.Except) MessageBox.Show("Connetcion error!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+            if (LoginWnd.Except)
+            {
+                TabCtrl.IsEnabled = false;
+                Thread recon = new Thread(reconn);
+                recon.Start();
+                MessageBox.Show("Connetcion error!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
 
             LoginWnd.ClearBuff();
             LoginWnd.Strbuffer = _mProductLst[ProductsLbox.SelectedIndex];
@@ -96,14 +228,28 @@ namespace Pharmacy_client
             thread.Start(LoginWnd.Socket);
             thread.Join();
 
-            if (LoginWnd.Except) MessageBox.Show("Connetcion error!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+            if (LoginWnd.Except)
+            {
+                TabCtrl.IsEnabled = false;
+                Thread recon = new Thread(reconn);
+                recon.Start();
+                MessageBox.Show("Connetcion error!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
 
             LoginWnd.ClearBuff();
             thread = new Thread(LoginWnd.RecieveThread);
             thread.Start(LoginWnd.Socket);
             thread.Join();
 
-            if (LoginWnd.Except) MessageBox.Show("Connetcion error!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+            if (LoginWnd.Except)
+            {
+                TabCtrl.IsEnabled = false;
+                Thread recon = new Thread(reconn);
+                recon.Start();
+                MessageBox.Show("Connetcion error!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
 
             String[] splStr = LoginWnd.Strbuffer.Split(':');
 
@@ -226,7 +372,14 @@ namespace Pharmacy_client
             thread.Start(LoginWnd.Socket);
             thread.Join();
 
-            if (LoginWnd.Except) MessageBox.Show("Connetcion error!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+            if (LoginWnd.Except)
+            {
+                IsEnabled = false;
+                Thread recon = new Thread(reconn);
+                recon.Start();
+                MessageBox.Show("Connetcion error!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
             #endregion
             #region Sending DB
             StreamReader tmpfile = new StreamReader("Cart.tmp");
@@ -243,9 +396,15 @@ namespace Pharmacy_client
             thread = new Thread(LoginWnd.SendThread);
             thread.Start(LoginWnd.Socket);
             thread.Join();
-
-            if (LoginWnd.Except) MessageBox.Show("Connetcion error!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
             tmpfile.Close();
+            if (LoginWnd.Except)
+            {
+                IsEnabled = false;
+                Thread recon = new Thread(reconn);
+                recon.Start();
+                MessageBox.Show("Connetcion error!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
             //File.Delete("Cart.tmp");
             #endregion
             #region Clear

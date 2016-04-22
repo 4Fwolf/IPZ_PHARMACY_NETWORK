@@ -85,7 +85,7 @@ namespace Pharmacy_client
 
         private void ExitBtn_Click(object sender, RoutedEventArgs e)
         {
-            if (Socket != null)
+            if (Socket != null && Socket.Connected)
             {
                 ClearBuff();
                 Strbuffer = "~~";
@@ -99,11 +99,12 @@ namespace Pharmacy_client
         private void LoginBtn_Click(object sender, RoutedEventArgs e)
         {
             int cnt = 3;
+            IPEndPoint addr;
             try
             {
                 Socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 var ipAddress = IPAddress.Parse("127.0.0.1");
-                var addr = new IPEndPoint(ipAddress, 6542);
+                addr = new IPEndPoint(ipAddress, 6542);
                 Socket.Connect(addr);
             }
             catch (Exception ex)
@@ -174,6 +175,10 @@ namespace Pharmacy_client
             if (Strbuffer.Substring(0, Strbuffer.IndexOf('\0')).Equals("TRUE"))
             {
                 UserWnd userWnd = new UserWnd();
+                userWnd.login = LoginTb.Text;
+                userWnd.password = PassTb.Password;
+                //userWnd.Socket = Socket;
+                userWnd.addr = addr;
                 userWnd.Show();
                 Close();
             }
