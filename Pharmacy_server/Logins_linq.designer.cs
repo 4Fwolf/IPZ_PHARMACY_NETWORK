@@ -30,6 +30,9 @@ namespace Pharmacy_server
 		
     #region Extensibility Method Definitions
     partial void OnCreated();
+    partial void InsertPharmacy(Pharmacy instance);
+    partial void UpdatePharmacy(Pharmacy instance);
+    partial void DeletePharmacy(Pharmacy instance);
     #endregion
 		
 		public Logins_linqDataContext() : 
@@ -215,23 +218,68 @@ namespace Pharmacy_server
 	}
 	
 	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.Pharmacy")]
-	public partial class Pharmacy
+	public partial class Pharmacy : INotifyPropertyChanging, INotifyPropertyChanged
 	{
+		
+		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
+		
+		private int _Id;
 		
 		private string _Product;
 		
 		private string _Vendor;
 		
-		private System.Nullable<int> _Count;
+		private int _Count;
 		
-		private System.Nullable<double> _Price;
+		private double _Price;
 		
 		private System.Nullable<int> _Year;
 		
 		private string _Description;
 		
+    #region Extensibility Method Definitions
+    partial void OnLoaded();
+    partial void OnValidate(System.Data.Linq.ChangeAction action);
+    partial void OnCreated();
+    partial void OnIdChanging(int value);
+    partial void OnIdChanged();
+    partial void OnProductChanging(string value);
+    partial void OnProductChanged();
+    partial void OnVendorChanging(string value);
+    partial void OnVendorChanged();
+    partial void OnCountChanging(int value);
+    partial void OnCountChanged();
+    partial void OnPriceChanging(double value);
+    partial void OnPriceChanged();
+    partial void OnYearChanging(System.Nullable<int> value);
+    partial void OnYearChanged();
+    partial void OnDescriptionChanging(string value);
+    partial void OnDescriptionChanged();
+    #endregion
+		
 		public Pharmacy()
 		{
+			OnCreated();
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Id", DbType="Int NOT NULL", IsPrimaryKey=true)]
+		public int Id
+		{
+			get
+			{
+				return this._Id;
+			}
+			set
+			{
+				if ((this._Id != value))
+				{
+					this.OnIdChanging(value);
+					this.SendPropertyChanging();
+					this._Id = value;
+					this.SendPropertyChanged("Id");
+					this.OnIdChanged();
+				}
+			}
 		}
 		
 		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Product", DbType="Text NOT NULL", CanBeNull=false, UpdateCheck=UpdateCheck.Never)]
@@ -245,7 +293,11 @@ namespace Pharmacy_server
 			{
 				if ((this._Product != value))
 				{
+					this.OnProductChanging(value);
+					this.SendPropertyChanging();
 					this._Product = value;
+					this.SendPropertyChanged("Product");
+					this.OnProductChanged();
 				}
 			}
 		}
@@ -261,13 +313,17 @@ namespace Pharmacy_server
 			{
 				if ((this._Vendor != value))
 				{
+					this.OnVendorChanging(value);
+					this.SendPropertyChanging();
 					this._Vendor = value;
+					this.SendPropertyChanged("Vendor");
+					this.OnVendorChanged();
 				}
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Count", DbType="Int")]
-		public System.Nullable<int> Count
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Count", DbType="Int NOT NULL")]
+		public int Count
 		{
 			get
 			{
@@ -277,13 +333,17 @@ namespace Pharmacy_server
 			{
 				if ((this._Count != value))
 				{
+					this.OnCountChanging(value);
+					this.SendPropertyChanging();
 					this._Count = value;
+					this.SendPropertyChanged("Count");
+					this.OnCountChanged();
 				}
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Price", DbType="Float")]
-		public System.Nullable<double> Price
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Price", DbType="Float NOT NULL")]
+		public double Price
 		{
 			get
 			{
@@ -293,7 +353,11 @@ namespace Pharmacy_server
 			{
 				if ((this._Price != value))
 				{
+					this.OnPriceChanging(value);
+					this.SendPropertyChanging();
 					this._Price = value;
+					this.SendPropertyChanged("Price");
+					this.OnPriceChanged();
 				}
 			}
 		}
@@ -309,7 +373,11 @@ namespace Pharmacy_server
 			{
 				if ((this._Year != value))
 				{
+					this.OnYearChanging(value);
+					this.SendPropertyChanging();
 					this._Year = value;
+					this.SendPropertyChanged("Year");
+					this.OnYearChanged();
 				}
 			}
 		}
@@ -325,8 +393,32 @@ namespace Pharmacy_server
 			{
 				if ((this._Description != value))
 				{
+					this.OnDescriptionChanging(value);
+					this.SendPropertyChanging();
 					this._Description = value;
+					this.SendPropertyChanged("Description");
+					this.OnDescriptionChanged();
 				}
+			}
+		}
+		
+		public event PropertyChangingEventHandler PropertyChanging;
+		
+		public event PropertyChangedEventHandler PropertyChanged;
+		
+		protected virtual void SendPropertyChanging()
+		{
+			if ((this.PropertyChanging != null))
+			{
+				this.PropertyChanging(this, emptyChangingEventArgs);
+			}
+		}
+		
+		protected virtual void SendPropertyChanged(String propertyName)
+		{
+			if ((this.PropertyChanged != null))
+			{
+				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
 			}
 		}
 	}

@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Data;
+using System.Data.Linq;
+using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -105,15 +108,16 @@ namespace Pharmacy_server
             thread.Join();
 
             if (_exception) goto disconn;
-
-            var loginTabl = dataBase.Logins.ToList();
-            foreach (var login in loginTabl)
+            dataBase.Connection.Open();
+            //var loginTabl = dataBase.Logins.ToList();
+            foreach (var login in dataBase.Logins.ToList())
             {
                 tmp = login.Login1 + ":" + login.Password;
                 if (!_strbuffer.Substring(0, _strbuffer.IndexOf('\0')).Equals(tmp)) continue;
                 flg = true;
                 break;
             }
+            dataBase.Connection.Close();
 
             if (flg)
             {
@@ -150,14 +154,15 @@ namespace Pharmacy_server
             thread.Start(client);
             thread.Join();
             if (_exception) goto disconn;
-
+            //var pharmTabl = dataBase.Pharmacies.ToList();
             if (_strbuffer.Substring(0, _strbuffer.IndexOf('\0')).Equals("READY"))
             {
                 Console.WriteLine("	" + user + " ready to receive data!");
                 Console.WriteLine("	" + user + " Sending data ...");
-                var pharmTabl = dataBase.Pharmacies.ToList();
-                
-                String tmp1 = pharmTabl.Aggregate("", (current, pharm) => current + (pharm.Product + ":"));
+
+                dataBase.Connection.Open();
+                String tmp1 = dataBase.Pharmacies.ToList().Aggregate("", (current, pharm) => current + (pharm.Product + ":"));
+                dataBase.Connection.Close();
                 ClearBuff();
                 _strbuffer = tmp1;
                 thread = new Thread(SendThread);
@@ -168,7 +173,7 @@ namespace Pharmacy_server
                 Console.WriteLine("	" + user + " Data sent!");
             }
             else goto tryagain;
-
+            //var pharmTabl = dataBase.Pharmacies.ToList();
             while (true)
             {
                 Console.WriteLine("	" + user + " Waiting readiness ...");
@@ -180,6 +185,9 @@ namespace Pharmacy_server
                 if (_exception) goto disconn;
 
                 tmp = _strbuffer.Substring(0, _strbuffer.IndexOf('\0'));
+                //dataBase.Connection.Open();
+                //var pharmTabl = dataBase.Pharmacies.ToList();
+                //dataBase.Connection.Close();
                 switch (tmp)
                 {
                     case "getdata":
@@ -190,8 +198,9 @@ namespace Pharmacy_server
                         if (_exception) goto disconn;
 
                         Console.WriteLine("        " + user + " Get " + _strbuffer.Substring(0, _strbuffer.IndexOf('\0')) + " data.");
-                        var pharmTabl = dataBase.Pharmacies.ToList();
-                        foreach (var pharm in pharmTabl.Where(pharm => pharm.Product == _strbuffer.Substring(0, _strbuffer.IndexOf('\0'))))
+                        //var pharmTabl = dataBase.Pharmacies.ToList();
+                        dataBase.Connection.Open();
+                        foreach (var pharm in dataBase.Pharmacies.ToList().Where(pharm => pharm.Product == _strbuffer.Substring(0, _strbuffer.IndexOf('\0'))))
                         {
                             ClearBuff();
                             _strbuffer = pharm.Vendor + ":" +
@@ -201,7 +210,8 @@ namespace Pharmacy_server
                                          pharm.Description;
                             break;
                         }
-
+                        dataBase.Connection.Close();
+                        
                         thread = new Thread(SendThread);
                         thread.Start(client);
                         thread.Join();
@@ -209,7 +219,6 @@ namespace Pharmacy_server
                         break;
                     case "buyproduct":
                         Console.WriteLine("        " + user + " Buy products.");
-                        StreamWriter tmpfile = new StreamWriter("Cart.tmp", true);
 
                         ClearBuff();
                         thread = new Thread(RecieveThread);
@@ -218,15 +227,79 @@ namespace Pharmacy_server
 
                         if (_exception) goto disconn;
 
-                        String []splStr = _strbuffer.Substring(0, _strbuffer.LastIndexOf(':')).Split(':');
-                           
+                        String []splStr = _strbuffer.Substring(0, _strbuffer.LastIndexOf(';')).Split(';');
+
                         foreach (string t in splStr)
-                            tmpfile.WriteLine(t);
+                        {
+                            var cartItm = t.Split(':');
 
-                        tmpfile.Flush();
-                        tmpfile.Close();
+                            dataBase.Connection.Open();
+                            var _itm = dataBase.Pharmacies.SingleOrDefault(p => p.Product.ToString() == cartItm[0]);
+                            int cn = int.Parse(cartItm[2]);
+                            
+                            // TODO: LINQ Change
+                            //dataBase.Pharmacies.Context.SubmitChanges();
+                            //dataBase.Pharmacies.DeleteOnSubmit(_itm);
+                            _itm.Count -= cn;
+                            //dataBase.Pharmacies.InsertOnSubmit(_itm);
+                            dataBase.Pharmacies.Context.SubmitChanges();
+                            //dataBase.Connection.ChangeDatabase(dataBase.Connection.Database);
+                            dataBase.Connection.Close();
+                            
+                            // TODO: LINQ Command
+                            /*dataBase.Connection.Open();
+                            string cm = string.Format("UPDATE dbo.Pharmacy SET Count = {0} WHERE Product LIKE '{1}';", cn, cartItm[0]);
+                            int q = dataBase.ExecuteCommand(cm);
+                            dataBase.SubmitChanges();
+                            dataBase.Refresh(RefreshMode.KeepCurrentValues);
+                            dataBase.Connection.Close();
+                            Console.WriteLine(q);*/
 
-                        break;
+                            // TODO: SQL Adapter
+                            /*string cm = string.Format("UPDATE Pharmacy SET Count = {0} WHERE Product LIKE '{1}';", cn, cartItm[0]);
+                            SqlConnection con = new SqlConnection(dataBase.Connection.ConnectionString);
+                            con.Open();
+                            DataTable tb = new DataTable("Pharmacy");
+                            SqlDataAdapter dataAdpater = new SqlDataAdapter("Select * from Pharmacy", con);
+                            dataAdpater.UpdateCommand = new SqlCommand(cm, con);
+                            dataAdpater.Fill(tb);
+                            dataAdpater.Update(tb);
+                            con.Close();*/
+
+                            // TODO: SQL Command
+                            //string cm = string.Format("UPDATE Pharmacy SET Count = {0} WHERE Product LIKE '{1}';", cn, cartItm[0]);
+                            /*SqlConnection con = new SqlConnection(dataBase.Connection.ConnectionString);
+                            con.Open();
+                            int conrez = new SqlCommand("UPDATE Pharmacy SET Count=" + cn + " where Product LIKE '" + cartItm[0] + "'", con).ExecuteNonQuery();
+                            //SqlCommand cmd = new SqlCommand(cm, con);
+                            //cmd.ExecuteNonQuery();
+                            Console.WriteLine(conrez);
+                            con.Close();*/
+
+                            // TODO: Transaction
+                            /*string cm = string.Format("UPDATE dbo.Pharmacy SET Count = {0} WHERE Product LIKE '{1}';", cn, cartItm[0]);
+                            SqlConnection con = new SqlConnection(dataBase.Connection.ConnectionString);
+                            con.Open();
+
+                            SqlTransaction transaction;
+                            transaction = con.BeginTransaction("SampleTransaction");
+                            SqlCommand cmd = new SqlCommand(cm, con);
+                            cmd.Transaction = transaction;
+
+                            try
+                            {
+                                cmd.ExecuteNonQuery();
+                                // Attempt to commit the transaction.
+                                transaction.Commit();
+                            }
+                            catch (Exception ex)
+                            {
+                                try { transaction.Rollback(); }
+                                catch { }
+                            }
+                            con.Close();*/
+                        }
+                            break;
                     default:
                         goto disconn;
                 }

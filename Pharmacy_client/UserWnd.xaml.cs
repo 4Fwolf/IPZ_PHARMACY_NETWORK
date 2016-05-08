@@ -356,14 +356,21 @@ namespace Pharmacy_client
             }
             #region Creating DB
 
-            StreamWriter cartWr = new StreamWriter("Cart.tmp", true);
+            string cart = "";
+            foreach (var str in _mCartLst.Select(t => t[0] + ":" + t[1] + ":" + t[2] + ":" + t[3]))
+            {
+                cart += str;
+                cart += ";";
+            }
+
+            /*StreamWriter cartWr = new StreamWriter("Cart.tmp", true);
             foreach (var str in _mCartLst.Select(t => t[0] + ":" + t[1] + ":" + t[2] + ":" + t[3]))
             {
                 cartWr.WriteLine(str);
             }
 
             cartWr.Flush();
-            cartWr.Close();
+            cartWr.Close();*/
             #endregion
             #region ready
             LoginWnd.ClearBuff();
@@ -382,21 +389,21 @@ namespace Pharmacy_client
             }
             #endregion
             #region Sending DB
-            StreamReader tmpfile = new StreamReader("Cart.tmp");
+            //StreamReader tmpfile = new StreamReader("Cart.tmp");
 
-            String tmp = "";
-            while (!tmpfile.EndOfStream)
-            {
-                tmp += tmpfile.ReadLine() + ":";
-            }
+            //String tmp = "";
+            //while (!tmpfile.EndOfStream)
+            //{
+                //tmp += tmpfile.ReadLine() + ":";
+            //}
 
             LoginWnd.ClearBuff();
-            LoginWnd.Strbuffer = tmp;
+            LoginWnd.Strbuffer = cart;
 
             thread = new Thread(LoginWnd.SendThread);
             thread.Start(LoginWnd.Socket);
             thread.Join();
-            tmpfile.Close();
+            //tmpfile.Close();
             if (LoginWnd.Except)
             {
                 IsEnabled = false;
@@ -408,10 +415,12 @@ namespace Pharmacy_client
             //File.Delete("Cart.tmp");
             #endregion
             #region Clear
-            for (int i = _mCartLst.Count - 1; i >= 0; --i)
+            _mCartLst.Clear();
+            CartData.Items.Clear();
+            /*for (int i = _mCartLst.Count - 1; i >= 0; --i)
                 _mCartLst.Remove(_mCartLst[i]);
             for (int i = CartData.Items.Count - 1; i >= 0; --i)
-                CartData.Items.Remove(CartData.Items[i]);
+                CartData.Items.Remove(CartData.Items[i]);*/
             TotSumLb.Content = "0";
             #endregion
         }

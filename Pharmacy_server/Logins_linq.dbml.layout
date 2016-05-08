@@ -8,10 +8,10 @@
         <elementListCompartment Id="f7b6d13a-df80-4550-9be4-ff6b6d42fd14" absoluteBounds="0.51500000000000012, 1.71, 1.9700000000000002, 1.5954996744791665" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
       </nestedChildShapes>
     </classShape>
-    <classShape Id="babec646-6fbc-4cf9-9219-ab0b250acf87" absoluteBounds="2.75, 1.375, 2, 1.9631982421875">
+    <classShape Id="f5370447-cf3b-4fa2-8d4d-2824b0507029" absoluteBounds="2.875, 1.25, 2, 2.1554996744791666">
       <DataClassMoniker Name="/Logins_linqDataContext/Pharmacy" />
       <nestedChildShapes>
-        <elementListCompartment Id="3c3fe39e-c023-4927-9148-d07a5174006c" absoluteBounds="2.7649999999999997, 1.835, 1.9700000000000002, 1.4031982421875" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+        <elementListCompartment Id="ce4ebf9d-c174-4f2e-8e59-366410213352" absoluteBounds="2.8899999999999997, 1.71, 1.9700000000000002, 1.5954996744791665" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
       </nestedChildShapes>
     </classShape>
   </nestedChildShapes>
